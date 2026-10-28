@@ -74,6 +74,16 @@ export function AppLayout() {
     )
   }
 
+  if (pathname === '/dashboard') {
+    return (
+      <div className="app-shell app-shell--dashboard">
+        <PageTransition>
+          <Outlet />
+        </PageTransition>
+      </div>
+    )
+  }
+
   return (
     <div className="app-shell">
       <div className="app-frame">

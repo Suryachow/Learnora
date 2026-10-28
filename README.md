@@ -3,7 +3,7 @@
 Learn practical technical and professional skills, pass assessments, and earn rewards. Rewards
 are funded by subscriptions, so the platform only pays what it can cover.
 
-- **Backend:** FastAPI · SQLAlchemy 2 · Alembic · Pydantic v2 · PostgreSQL (SQLite for local dev) · pytest
+- **Backend:** FastAPI · SQLAlchemy 2 · Alembic · Pydantic v2 · PostgreSQL · pytest
 - **Frontend:** React 18 · Vite · React Router · plain CSS with design tokens
 - **Light and dark themes**, plus an admin console for the catalogue, quizzes, users and the
   business settings.
@@ -126,7 +126,66 @@ Every signed-in page is drawn inside that shell: a floating 72px icon rail
 switch (`components/TopBar.jsx`), then the page body. Landing, sign-in and sign-up keep the canvas
 without the rail. The admin console keeps its own shell (`pages/admin/AdminLayout.jsx`).
 
-## 8. Build status
+## 8. Production deployment with Docker
+
+The repository includes a production Compose stack with PostgreSQL, the FastAPI
+API, and an nginx-served frontend. GitHub stores the source; Docker images must
+be rebuilt after each source update.
+
+1. Clone the repository and enter the project:
+
+   ```powershell
+   git clone https://github.com/Suryachow/Learnora.git
+   cd Learnora
+   ```
+
+2. Create the deployment environment file without committing it:
+
+   ```powershell
+   Copy-Item .env.docker.example .env.docker
+   ```
+
+   Set unique values for `POSTGRES_PASSWORD`, `JWT_SECRET`, and
+   `SEED_ADMIN_PASSWORD`. Use `PAYMENT_PROVIDER=razorpay` with valid Razorpay
+   secrets before enabling real payments. Keep `.env.docker` outside GitHub.
+
+3. Build and start the stack:
+
+   ```powershell
+   docker compose --env-file .env.docker up -d --build
+   ```
+
+   The website is available at `http://localhost:8080` by default. Put a TLS
+   reverse proxy in front of this port for a public domain and update
+   `CORS_ORIGINS` to that exact origin.
+
+4. Verify the deployment:
+
+   ```powershell
+   docker compose --env-file .env.docker ps
+   Invoke-WebRequest http://localhost:8080/api/v1/health/ready
+   ```
+
+   All three services should be healthy and the readiness response should
+   report `"database": "up"`.
+
+5. Deploy a GitHub update:
+
+   ```powershell
+   git pull origin main
+   docker compose --env-file .env.docker up -d --build
+   ```
+
+   Compose runs Alembic migrations during API startup. The database is stored
+   in the named `db_data` volume and is not removed by a normal rebuild.
+   Never use `docker compose down -v` on a deployment unless the database is
+   intentionally being destroyed.
+
+The GitHub Actions workflow at `.github/workflows/ci.yml` runs backend tests,
+the frontend production build, Compose validation, and both application image
+builds for pushes and pull requests targeting `main`.
+
+## 9. Build status
 
 | Phase | Scope | Status |
 |---|---|---|
@@ -275,4 +334,3 @@ Notes for running it for real:
 - **Payments are unchanged.** With `PAYMENT_PROVIDER=mock` and `ENV=production` the mock provider is
   inert, so checkout will not complete until Razorpay keys are configured — paid courses stay locked
   until then.
-
