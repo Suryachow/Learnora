@@ -251,12 +251,11 @@ rebuilt after each source update.
    Never use `docker compose down -v` on a deployment unless the database is
    intentionally being destroyed.
 
-The GitHub Actions workflow at `.github/workflows/ci.yml` runs backend tests,
-the frontend production build, Compose validation, and both application image
-builds for pushes and pull requests targeting `main`. Successful pushes to
-`main` also publish SHA-tagged images to GitHub Container Registry and can
-deploy them to EC2 through the production environment secrets described in
-[`deploy/docker-cicd-setup.md`](deploy/docker-cicd-setup.md).
+The GitHub Actions workflow at `.github/workflows/ci.yml` runs backend tests and
+the frontend production build for pushes and pull requests targeting `main`.
+Successful pushes to `main` can deploy the native EC2 systemd/nginx setup
+through the production environment secrets described above. Docker files remain
+in the repository as an optional deployment path, but are not used by CI/CD.
 
 ## 10. Build status
 

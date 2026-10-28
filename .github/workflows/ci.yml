@@ -45,69 +45,10 @@ jobs:
       - run: npm ci
       - run: npm run build
 
-  docker:
+  deploy-native:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [backend, frontend]
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Validate Compose file
-        run: docker compose --env-file .env.docker.example config
-        env:
-          POSTGRES_PASSWORD: ci-postgres-password
-          JWT_SECRET: ci-jwt-secret
-          SEED_ADMIN_PASSWORD: ci-admin-password
-      - name: Build application images
-        run: docker compose --env-file .env.docker.example build
-        env:
-          POSTGRES_PASSWORD: ci-postgres-password
-          JWT_SECRET: ci-jwt-secret
-          SEED_ADMIN_PASSWORD: ci-admin-password
-
-  publish:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    needs: [backend, frontend, docker]
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build and publish API image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./backend
-          push: true
-          tags: |
-            suytaama/learnora-api:${{ github.sha }}
-            suytaama/learnora-api:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - name: Build and publish web image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./frontend
-          push: true
-          build-args: |
-            VITE_API_BASE_URL=/api/v1
-          tags: |
-            suytaama/learnora-web:${{ github.sha }}
-            suytaama/learnora-web:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    needs: publish
     environment: production
     steps:
       - uses: actions/checkout@v4
@@ -120,35 +61,16 @@ jobs:
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/learnora_deploy
           chmod 600 ~/.ssh/learnora_deploy
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
-      - name: Upload Compose configuration
+      - name: Pull and deploy native services
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: |
-          scp -i ~/.ssh/learnora_deploy docker-compose.yml \
-            "$DEPLOY_USER@$DEPLOY_HOST:/tmp/learnora-docker-compose.yml"
-      - name: Pull and restart the production stack
-        env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
-          IMAGE_TAG: ${{ github.sha }}
         run: |
-          printf '%s' "$DOCKERHUB_TOKEN" | \
-            ssh -i ~/.ssh/learnora_deploy "$DEPLOY_USER@$DEPLOY_HOST" \
-            "docker login --username '$DOCKERHUB_USERNAME' --password-stdin"
           ssh -i ~/.ssh/learnora_deploy "$DEPLOY_USER@$DEPLOY_HOST" \
-            "DEPLOY_PATH='$DEPLOY_PATH' IMAGE_TAG='$IMAGE_TAG' bash -s" <<'REMOTE'
+            "DEPLOY_PATH='$DEPLOY_PATH' bash -s" <<'REMOTE'
           set -Eeuo pipefail
           : "${DEPLOY_PATH:?DEPLOY_PATH is required}"
           cd "$DEPLOY_PATH"
-          install -m 0644 /tmp/learnora-docker-compose.yml docker-compose.yml
-          export API_IMAGE="suytaama/learnora-api:${IMAGE_TAG}"
-          export WEB_IMAGE="suytaama/learnora-web:${IMAGE_TAG}"
-          docker compose --env-file .env.docker pull api web
-          docker compose --env-file .env.docker up -d --no-build api web
-          docker image prune -f
-          docker compose --env-file .env.docker ps
+          sudo -E APP_DIR="$DEPLOY_PATH" ./deploy/native-deploy.sh
           REMOTE
