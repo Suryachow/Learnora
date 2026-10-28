@@ -1,0 +1,22 @@
+[Unit]
+Description=Learnora FastAPI application
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=learnora
+Group=learnora
+WorkingDirectory=/opt/learnora/backend
+EnvironmentFile=/etc/learnora/learnora.env
+ExecStart=/opt/learnora/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/learnora/backend
+
+[Install]
+WantedBy=multi-user.target

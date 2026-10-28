@@ -126,11 +126,81 @@ Every signed-in page is drawn inside that shell: a floating 72px icon rail
 switch (`components/TopBar.jsx`), then the page body. Landing, sign-in and sign-up keep the canvas
 without the rail. The admin console keeps its own shell (`pages/admin/AdminLayout.jsx`).
 
-## 8. Production deployment with Docker
+## 8. Production deployment on AWS without Docker
 
-The repository includes a production Compose stack with PostgreSQL, the FastAPI
-API, and an nginx-served frontend. GitHub stores the source; Docker images must
-be rebuilt after each source update.
+The recommended AWS deployment is an Ubuntu EC2 instance running the API with
+systemd and serving the built React application through nginx. Use Amazon RDS
+for PostgreSQL rather than running the database on the EC2 instance.
+
+On the EC2 instance, install the runtime prerequisites:
+
+```bash
+sudo apt update
+sudo apt install -y git python3 python3-venv python3-pip nginx nodejs npm
+```
+
+Create the application environment file and protect it:
+
+```bash
+sudo mkdir -p /etc/learnora
+sudo cp deploy/learnora.env.example /etc/learnora/learnora.env
+sudo nano /etc/learnora/learnora.env
+sudo chmod 600 /etc/learnora/learnora.env
+```
+
+Set a real RDS `DATABASE_URL`, a long random `JWT_SECRET`, your public
+`CORS_ORIGINS`, and a strong first-boot `SEED_ADMIN_PASSWORD`. Set
+`PAYMENT_PROVIDER=razorpay` only after all Razorpay secrets are configured.
+Set `SEED_ON_START=false` after the initial catalogue has been created.
+
+Run the native deployment script:
+
+```bash
+git clone https://github.com/Suryachow/Learnora.git /opt/learnora
+cd /opt/learnora
+chmod +x deploy/native-deploy.sh
+sudo -E ./deploy/native-deploy.sh
+```
+
+The script pulls the latest `main` branch on subsequent runs, creates the
+backend virtual environment, installs dependencies, runs Alembic migrations,
+seeds an empty catalogue when enabled, builds the frontend, installs the
+systemd service, and configures nginx.
+
+Verify the native deployment:
+
+```bash
+sudo systemctl status learnora-api nginx
+curl http://127.0.0.1/api/v1/health/ready
+```
+
+For a public deployment, point DNS to the EC2 Elastic IP, allow TCP 80/443 in
+the security group, and add TLS with Certbot:
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.example
+```
+
+Deploy later GitHub updates with:
+
+```bash
+cd /opt/learnora
+sudo -E ./deploy/native-deploy.sh
+```
+
+Logs are available with:
+
+```bash
+sudo journalctl -u learnora-api -f
+sudo tail -f /var/log/nginx/error.log
+```
+
+## 9. Optional Docker deployment
+
+The repository also includes a Docker Compose stack, but Docker is not required
+for the AWS deployment above. GitHub stores the source; Docker images must be
+rebuilt after each source update.
 
 1. Clone the repository and enter the project:
 
@@ -185,7 +255,7 @@ The GitHub Actions workflow at `.github/workflows/ci.yml` runs backend tests,
 the frontend production build, Compose validation, and both application image
 builds for pushes and pull requests targeting `main`.
 
-## 9. Build status
+## 10. Build status
 
 | Phase | Scope | Status |
 |---|---|---|
