@@ -37,7 +37,7 @@ services:
   api:
     build:
       context: ./backend
-    image: learnora-api:latest
+    image: ${API_IMAGE:-learnora-api:latest}
     restart: unless-stopped
     # Reap zombies and forward SIGTERM so `docker compose stop` is clean.
     init: true
@@ -116,7 +116,7 @@ services:
       args:
         # Relative, so the browser calls nginx and nginx calls the API.
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api/v1}
-    image: learnora-web:latest
+    image: ${WEB_IMAGE:-learnora-web:latest}
     restart: unless-stopped
     depends_on:
       api:

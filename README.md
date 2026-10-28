@@ -253,7 +253,10 @@ rebuilt after each source update.
 
 The GitHub Actions workflow at `.github/workflows/ci.yml` runs backend tests,
 the frontend production build, Compose validation, and both application image
-builds for pushes and pull requests targeting `main`.
+builds for pushes and pull requests targeting `main`. Successful pushes to
+`main` also publish SHA-tagged images to GitHub Container Registry and can
+deploy them to EC2 through the production environment secrets described in
+[`deploy/docker-cicd-setup.md`](deploy/docker-cicd-setup.md).
 
 ## 10. Build status
 
