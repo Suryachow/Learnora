@@ -1,0 +1,20 @@
+# The image installs its own dependencies and builds the bundle itself.
+node_modules/
+dist/
+.vite/
+
+# Secrets and local overrides
+.env
+.env.*
+!.env.example
+
+# The Dockerfile itself is not needed inside the image; nginx.conf is copied,
+# so it must stay in the build context.
+Dockerfile
+.dockerignore
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

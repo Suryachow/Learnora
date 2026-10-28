@@ -1,0 +1,26 @@
+# Keep the build context small and never bake secrets or a local database in.
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Secrets and local state
+.env
+.env.*
+!.env.example
+*.db
+*.sqlite3
+skillearn.db
+
+# Tests and tooling are not part of the runtime image
+tests/
+pyproject.toml
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

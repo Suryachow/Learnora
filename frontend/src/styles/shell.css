@@ -1,0 +1,1544 @@
+/* ---------------------------------------------------------------------------
+   Learnora app shell.
+
+   Every signed-in page is drawn on the same warm canvas: a floating icon rail,
+   a header row with the sunburst mark and the utility controls, then the page.
+   The learner pages keep their own `.page-header` for their real headline; the
+   shell only owns navigation and the utility bar.
+
+   Shared primitives (buttons, inputs, tables, tiles) are re-skinned here rather
+   than in each page, so one change reaches the whole product.
+   --------------------------------------------------------------------------- */
+
+/* --- Frame -------------------------------------------------------------- */
+
+.app-shell {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+.app-frame {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 1580px;
+  /* The shell is a column flexbox, and auto margins there disable stretching:
+     without an explicit width the frame shrinks to its content on short pages. */
+  padding: 20px 26px 36px;
+  width: 100%;
+}
+
+.app-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.app-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0 auto;
+  max-width: var(--content-max);
+  min-width: 0;
+  width: 100%;
+}
+
+/* Marketing and auth pages get the canvas without the rail. */
+.app-shell--bare .app-bare {
+  margin: 0 auto;
+  max-width: var(--content-max);
+  padding: 34px 26px 64px;
+  /* Same reason as .app-frame: auto margins in the column shell opt out of stretch. */
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .app-shell--bare .app-bare {
+    padding: 20px 16px 40px;
+  }
+}
+
+/* Auth screens are one composition, not a document: they claim the height left
+   under the header and centre themselves in it instead of adding a viewport of
+   padding. Auto margins collapse on short screens, so the form never clips. */
+.app-shell--bare .app-bare--auth {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 16px 26px 24px;
+}
+
+.app-shell--bare .app-bare--auth .route-shell {
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .app-shell--bare .app-bare--auth {
+    padding: 12px 16px 20px;
+  }
+}
+
+/* Public header: the mark on the left, the two ways in on the right. */
+.app-public-bar {
+  -webkit-backdrop-filter: saturate(150%) blur(16px);
+  backdrop-filter: saturate(150%) blur(16px);
+  background: color-mix(in srgb, var(--color-bg) 76%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+
+.app-public {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: var(--content-max);
+  padding: 13px 26px;
+}
+
+.app-public__brand {
+  align-items: center;
+  color: var(--color-text);
+  display: inline-flex;
+  font-size: 15px;
+  font-weight: 600;
+  gap: 10px;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.app-public__brand svg {
+  height: 26px;
+  width: 26px;
+}
+
+.app-public__actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.app-public__nav {
+  align-items: center;
+  display: flex;
+  gap: 2px;
+  margin: 0 auto;
+}
+
+.app-public__nav a {
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 12px;
+  text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.app-public__nav a:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+@media (max-width: 900px) {
+  .app-public__nav {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-public {
+    padding: 16px 16px 0;
+  }
+
+  .app-public__actions .btn {
+    padding: 0 14px;
+  }
+
+  .app-public__brand svg {
+    height: 22px;
+    width: 22px;
+  }
+}
+
+/* --- Rail --------------------------------------------------------------- */
+
+.app-rail {
+  align-items: stretch;
+  align-self: start;
+  background: var(--lr-card);
+  border: 1px solid var(--lr-line);
+  border-radius: 24px;
+  box-shadow: var(--lr-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  position: sticky;
+  top: 20px;
+  width: 100%;
+  z-index: 30;
+}
+
+/* Brand lockup: the mark in a soft tile, the wordmark, the promise. */
+.app-rail__brand {
+  align-items: center;
+  border-bottom: 1px solid var(--lr-line);
+  color: var(--lr-ink);
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 4px 6px 14px;
+  text-decoration: none;
+}
+
+.app-rail__brand:hover {
+  text-decoration: none;
+}
+
+.app-rail__mark {
+  align-items: center;
+  background: var(--lr-green-soft);
+  border-radius: 13px;
+  color: var(--lr-green-text);
+  display: flex;
+  flex: 0 0 38px;
+  height: 38px;
+  justify-content: center;
+}
+
+.app-rail__mark svg {
+  height: 24px;
+  width: 24px;
+}
+
+.app-rail__brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.app-rail__brand-copy strong {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.app-rail__brand-copy small {
+  color: var(--lr-ink-3);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.app-rail__nav {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.app-rail__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-rail__caption {
+  color: var(--lr-ink-3);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  margin: 12px 0 6px;
+  padding-left: 12px;
+  text-transform: uppercase;
+}
+
+.app-rail__group:first-child .app-rail__caption {
+  margin-top: 0;
+}
+
+.app-rail__link {
+  align-items: center;
+  border-radius: 12px;
+  color: var(--lr-ink-3);
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 12.5px;
+  font-weight: 500;
+  gap: 10px;
+  height: 38px;
+  padding: 0 11px;
+  position: relative;
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease;
+  width: 100%;
+}
+
+.app-rail__link svg {
+  flex: 0 0 18px;
+  height: 18px;
+  width: 18px;
+}
+
+.app-rail__label {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.app-rail__link:hover {
+  background: var(--lr-card-2);
+  color: var(--lr-ink);
+  text-decoration: none;
+}
+
+/* The active route is a filled row; the dot is the only ornament it needs. */
+.app-rail__link.is-active {
+  background: var(--lr-invert);
+  box-shadow: 0 10px 22px -16px rgba(0, 0, 0, 0.7);
+  color: var(--lr-invert-ink);
+}
+
+.app-rail__link.is-active::after {
+  background: currentColor;
+  border-radius: 50%;
+  content: '';
+  height: 5px;
+  margin-left: auto;
+  opacity: 0.45;
+  width: 5px;
+}
+
+.app-rail__link.is-admin {
+  color: var(--lr-green-text);
+}
+
+.app-rail__link.is-admin:hover,
+.app-rail__link.is-admin.is-active {
+  background: var(--lr-green);
+  color: var(--lr-green-ink);
+}
+
+.app-rail__foot {
+  border-top: 1px solid var(--lr-line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.app-rail__me {
+  align-items: center;
+  border-radius: 14px;
+  color: var(--lr-ink);
+  display: flex;
+  gap: 10px;
+  padding: 7px 8px;
+  text-decoration: none;
+  transition: background 160ms ease;
+}
+
+.app-rail__me:hover {
+  background: var(--lr-card-2);
+  text-decoration: none;
+}
+
+.app-rail__avatar {
+  align-items: center;
+  background: var(--lr-peach);
+  border-radius: 50%;
+  color: var(--lr-gold-text);
+  display: flex;
+  flex: 0 0 34px;
+  font-size: 12.5px;
+  font-weight: 600;
+  height: 34px;
+  justify-content: center;
+  position: relative;
+  width: 34px;
+}
+
+/* Only members get the status dot, so it never claims something untrue. */
+.app-rail__avatar.is-member::before {
+  background: #3f9d6a;
+  border: 2px solid var(--lr-card);
+  border-radius: 50%;
+  bottom: -1px;
+  content: '';
+  height: 9px;
+  position: absolute;
+  right: -1px;
+  width: 9px;
+}
+
+.app-rail__who {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.app-rail__who strong {
+  color: var(--lr-ink);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-rail__who small {
+  color: var(--lr-ink-3);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.app-rail__who small.is-member {
+  color: var(--lr-green-text);
+}
+
+.app-rail__go {
+  color: var(--lr-ink-3);
+  flex: 0 0 14px;
+  height: 14px;
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity 160ms ease, transform 160ms ease;
+  width: 14px;
+}
+
+.app-rail__me:hover .app-rail__go {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.app-rail__actions {
+  align-items: center;
+  display: flex;
+  gap: 2px;
+  justify-content: flex-end;
+}
+
+.app-rail .theme-toggle,
+.app-rail .icon-btn {
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  color: var(--lr-ink-3);
+  height: 32px;
+  padding: 0;
+  width: 32px;
+}
+
+.app-rail .theme-toggle:hover,
+.app-rail .icon-btn:hover {
+  background: var(--lr-card-2);
+  color: var(--lr-ink);
+}
+
+/* --- Header row --------------------------------------------------------- */
+
+.app-top {
+  align-items: center;
+  background: var(--lr-card);
+  border: 1px solid var(--lr-line);
+  border-radius: 20px;
+  box-shadow: var(--lr-shadow-card);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 9px 10px 9px 16px;
+  position: sticky;
+  top: 10px;
+  z-index: 45;
+}
+
+/* Where you are, spelled out as a quiet breadcrumb. */
+.app-top__where {
+  align-items: center;
+  display: flex;
+  gap: 9px;
+  min-width: 0;
+}
+
+.app-top__brand {
+  align-items: center;
+  color: var(--lr-ink);
+  display: flex;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.app-top__brand:hover {
+  text-decoration: none;
+}
+
+.app-top__brand svg {
+  height: 30px;
+  width: 30px;
+}
+
+.app-top__brand span {
+  color: var(--lr-ink-2);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.app-top__crumb {
+  color: var(--lr-ink-3);
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.app-top__section {
+  color: var(--lr-ink);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-top__tools {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* Search reads as a field pressed into the bar, not a second floating card. */
+.app-search {
+  align-items: center;
+  background: var(--lr-card-2);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  display: flex;
+  gap: 8px;
+  height: 44px;
+  padding: 0 10px 0 14px;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  width: 290px;
+}
+
+.app-search:focus-within {
+  background: var(--lr-card);
+  border-color: rgba(92, 123, 99, 0.4);
+  box-shadow: 0 0 0 3px rgba(92, 123, 99, 0.12);
+}
+
+.app-search__icon {
+  color: var(--lr-ink-3);
+  flex: 0 0 16px;
+  height: 16px;
+  width: 16px;
+}
+
+.app-search input {
+  background: none;
+  border: 0;
+  color: var(--lr-ink);
+  flex: 1;
+  font-family: inherit;
+  font-size: 12.5px;
+  min-width: 0;
+  outline: 0;
+}
+
+.app-search input::placeholder {
+  color: var(--lr-ink-3);
+}
+
+.app-search__key {
+  background: var(--lr-card);
+  border: 1px solid var(--lr-line);
+  border-radius: 7px;
+  color: var(--lr-ink-3);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 6px;
+}
+
+/* Filter and theme share one pill so the row of circles stops fragmenting. */
+.app-top__cluster {
+  align-items: center;
+  background: var(--lr-card-2);
+  border: 1px solid var(--lr-line);
+  border-radius: 999px;
+  display: flex;
+  gap: 2px;
+  height: 44px;
+  padding: 0 3px;
+}
+
+.app-top__rule {
+  background: var(--lr-line);
+  height: 16px;
+  width: 1px;
+}
+
+.app-top .app-top__icon {
+  background: none;
+  border: 0;
+  border-radius: 999px;
+  color: var(--lr-ink-2);
+  cursor: pointer;
+  height: 36px;
+  width: 36px;
+}
+
+.app-top .app-top__icon:hover {
+  background: var(--lr-card);
+  color: var(--lr-ink);
+}
+
+.app-top .app-top__icon[aria-expanded='true'] {
+  background: var(--lr-invert);
+  color: var(--lr-invert-ink);
+}
+
+.app-top__avatar {
+  align-items: center;
+  background: linear-gradient(150deg, var(--lr-peach), var(--lr-card));
+  border: 1px solid var(--lr-line);
+  border-radius: 50%;
+  color: var(--lr-gold-text);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 44px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  height: 44px;
+  justify-content: center;
+  position: relative;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+  width: 44px;
+}
+
+.app-top__avatar:hover {
+  box-shadow: 0 10px 20px -14px rgba(0, 0, 0, 0.55);
+  transform: translateY(-1px);
+}
+
+.app-top__avatar.is-member::after {
+  background: #3f9d6a;
+  border: 2px solid var(--lr-card);
+  border-radius: 50%;
+  bottom: 0;
+  content: '';
+  height: 10px;
+  position: absolute;
+  right: 0;
+  width: 10px;
+}
+
+/* --- Account menu ------------------------------------------------------- */
+
+.app-pop--account {
+  min-width: 258px;
+  padding: 10px;
+}
+
+.app-account__head {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  padding: 4px 4px 10px;
+}
+
+.app-account__avatar {
+  align-items: center;
+  background: var(--lr-peach);
+  border-radius: 50%;
+  color: var(--lr-gold-text);
+  display: flex;
+  flex: 0 0 38px;
+  font-size: 13px;
+  font-weight: 600;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.app-account__id {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.app-account__id strong {
+  color: var(--lr-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-account__id small {
+  color: var(--lr-ink-3);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-account__plan {
+  align-items: center;
+  color: var(--lr-ink-3);
+  display: flex;
+  font-size: 10.5px;
+  font-weight: 500;
+  gap: 6px;
+  letter-spacing: 0.02em;
+  margin: 0 4px 8px;
+}
+
+.app-account__plan.is-member {
+  color: var(--lr-green-text);
+}
+
+.app-account__dot {
+  background: currentColor;
+  border-radius: 50%;
+  height: 6px;
+  width: 6px;
+}
+
+.app-account__links {
+  border-bottom: 1px solid var(--lr-line);
+  border-top: 1px solid var(--lr-line);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 0;
+}
+
+.app-account__links a,
+.app-account__out {
+  align-items: center;
+  border-radius: 10px;
+  color: var(--lr-ink-2);
+  display: flex;
+  font-size: 12.5px;
+  gap: 10px;
+  padding: 8px;
+  text-decoration: none;
+  transition: background 140ms ease, color 140ms ease;
+  width: 100%;
+}
+
+.app-account__links a:hover,
+.app-account__out:hover {
+  background: var(--lr-card-2);
+  color: var(--lr-ink);
+  text-decoration: none;
+}
+
+.app-account__links svg,
+.app-account__out svg {
+  color: var(--lr-ink-3);
+  flex: 0 0 16px;
+  height: 16px;
+  width: 16px;
+}
+
+.app-account__out {
+  background: none;
+  border: 0;
+  color: var(--color-danger);
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 6px;
+  padding: 9px 8px;
+}
+
+.app-account__out svg {
+  color: currentColor;
+}
+
+.app-account__out:hover {
+  background: var(--lr-red-soft);
+  color: var(--color-danger);
+}
+
+/* --- Popovers ----------------------------------------------------------- */
+
+.app-pop__wrap {
+  position: relative;
+}
+
+.app-pop-backdrop {
+  background: transparent;
+  border: 0;
+  cursor: default;
+  inset: 0;
+  position: fixed;
+  z-index: 50;
+}
+
+.app-pop {
+  background: var(--lr-card);
+  border: 1px solid var(--lr-line);
+  border-radius: 18px;
+  box-shadow: var(--lr-shadow-float);
+  min-width: 216px;
+  padding: 12px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 60;
+}
+
+.app-pop__title {
+  color: var(--lr-ink-3);
+  display: block;
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  margin: 0 4px 8px;
+  text-transform: uppercase;
+}
+
+.app-pop__option {
+  background: none;
+  border: 0;
+  border-radius: 9px;
+  color: var(--lr-ink);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: 11.5px;
+  justify-content: space-between;
+  padding: 7px 9px;
+  text-align: left;
+  width: 100%;
+}
+
+.app-pop__option:hover {
+  background: var(--lr-card-2);
+}
+
+.app-pop__option.is-active {
+  background: var(--lr-green-soft);
+  color: var(--lr-green-text);
+  font-weight: 500;
+}
+
+/* --- Shared primitives -------------------------------------------------- */
+
+.app-shell .page {
+  padding: 0;
+}
+
+.app-shell .page-header {
+  margin-bottom: 2px;
+}
+
+.app-shell .page-header h1 {
+  color: var(--color-heading);
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.app-shell .page-header p {
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  line-height: 1.6;
+  max-width: 62ch;
+  margin-top: 6px;
+}
+
+.app-shell .card,
+.app-shell .course-card,
+.app-shell .task-card,
+.app-shell .stat,
+.app-shell .wallet-hero,
+.app-shell .settings-nav,
+.app-shell .quiz-question,
+.app-shell .quiz-result,
+.app-shell .form-card .card {
+  border-color: var(--color-border);
+  border-radius: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.app-shell .card {
+  padding: 20px;
+}
+
+.app-shell .stat,
+.app-shell .wallet-hero {
+  padding: 18px;
+}
+
+.app-shell .card__title {
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+
+.app-shell .card__subtitle {
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+}
+
+/* Buttons become pills: black primary, white secondary, quiet ghost. */
+.app-shell .btn {
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 500;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.app-shell .btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.app-shell .btn--primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.app-shell .btn--primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.app-shell .btn--secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.app-shell .btn--secondary:hover:not(:disabled) {
+  background: var(--color-surface-2);
+}
+
+.app-shell .btn--ghost {
+  color: var(--color-text-muted);
+}
+
+/* Inputs */
+.app-shell .field__input {
+  background: var(--color-surface);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 13px;
+  height: 44px;
+  padding: 0 14px;
+}
+
+.app-shell textarea.field__input {
+  height: auto;
+  padding: 12px 14px;
+}
+
+.app-shell .field__label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.app-shell .field__hint {
+  color: var(--color-text-subtle);
+  font-size: 10.5px;
+}
+
+/* Settings keeps its own section menu inside the rail shell. */
+.app-shell .settings-nav__link {
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 9px 12px;
+}
+
+.app-shell .settings-nav__link[aria-current='page'] {
+  background: var(--lr-invert);
+  color: var(--lr-invert-ink);
+}
+
+/* Tabs, pills and badges */
+.app-shell .pill,
+.app-shell .badge,
+.app-shell .chip {
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 3px 9px;
+}
+
+.app-shell .tabs {
+  background: var(--color-surface-2);
+  border-radius: 999px;
+  gap: 2px;
+  padding: 3px;
+}
+
+.app-shell .tab {
+  border-radius: 999px;
+  font-size: 11.5px;
+  padding: 6px 12px;
+}
+
+.app-shell .tab[aria-selected='true'] {
+  background: var(--color-surface);
+  box-shadow: 0 1px 3px rgba(23, 23, 20, 0.12);
+  color: var(--color-text);
+}
+
+/* Tables */
+.app-shell .table-wrap {
+  border-radius: 18px;
+}
+
+.app-shell .table th {
+  color: var(--color-text-subtle);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.app-shell .table th,
+.app-shell .table td {
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12px;
+  padding: 12px 10px;
+}
+
+.app-shell .table tbody tr:hover td {
+  background: var(--color-surface-2);
+}
+
+/* Progress and modals */
+.app-shell .progress {
+  border-radius: 999px;
+  height: 8px;
+}
+
+.app-shell .modal {
+  border-radius: 24px;
+}
+
+.app-shell .settings-nav__link,
+.app-shell .topic-row,
+.app-shell .definition-list > div {
+  border-radius: 12px;
+}
+
+/* Page-level grids should breathe like the reference. */
+.app-shell .stack {
+  gap: 16px;
+}
+
+.app-shell .stat-grid,
+.app-shell .grid {
+  gap: 16px;
+}
+
+/* --- Admin console ------------------------------------------------------ */
+
+.admin-shell {
+  background: var(--color-bg);
+  color: var(--color-text);
+  display: grid;
+  font-family: var(--font-sans);
+  gap: 18px;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 1580px;
+  padding: 20px 26px 36px;
+}
+
+.admin-sidebar {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  padding: 18px 14px;
+  position: sticky;
+  top: 20px;
+}
+
+.admin-sidebar__brand {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  font-size: 13.5px;
+  font-weight: 600;
+  gap: 10px;
+  letter-spacing: -0.01em;
+  padding: 2px 6px 8px;
+  text-decoration: none;
+}
+
+.admin-sidebar__brand > span:last-child {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.admin-sidebar__brand small {
+  color: var(--color-text-subtle);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.admin-sidebar__brand svg {
+  height: 16px;
+  width: 16px;
+}
+
+.admin-sidebar__brand span:first-child {
+  align-items: center;
+  background: var(--lr-green-soft);
+  border-radius: 10px;
+  color: var(--lr-green-text);
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.admin-sidebar__group-label {
+  color: var(--color-text-subtle);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  margin: 8px 0 4px;
+  padding: 0 10px;
+  text-transform: uppercase;
+}
+
+.admin-sidebar__link {
+  align-items: center;
+  border-radius: 10px;
+  color: var(--color-text-muted);
+  display: flex;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 9px;
+  padding: 9px 10px;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.admin-sidebar__link svg {
+  flex: 0 0 auto;
+  height: 16px;
+  opacity: 0.75;
+  width: 16px;
+}
+
+.admin-sidebar__link[aria-current='page'] svg {
+  opacity: 1;
+}
+
+.admin-sidebar__link:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.admin-sidebar__link[aria-current='page'] {
+  background: var(--lr-invert);
+  color: var(--lr-invert-ink);
+}
+
+.admin-sidebar__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.admin-sidebar__backdrop {
+  display: none;
+}
+
+.admin-main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.admin-topbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 2px 2px 0;
+}
+
+.admin-topbar strong {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.admin-topbar .card__subtitle {
+  color: var(--color-text-muted);
+  font-size: 12.5px;
+}
+
+.admin-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 0 28px;
+  width: 100%;
+}
+
+.admin-shell .page-header h1 {
+  color: var(--color-heading);
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.admin-shell .page-header p {
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  margin-top: 4px;
+}
+
+.admin-shell .card {
+  border-color: var(--color-border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  padding: 18px;
+}
+
+.admin-shell .btn {
+  border-radius: 999px;
+  font-size: 12.5px;
+  height: 36px;
+  padding: 0 14px;
+}
+
+.admin-shell .btn--primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.admin-shell .btn--secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.admin-shell .field__input {
+  background: var(--color-surface);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 12.5px;
+  height: 40px;
+  padding: 0 12px;
+}
+
+.admin-shell textarea.field__input {
+  height: auto;
+  padding: 10px 12px;
+}
+
+.admin-shell .table th {
+  color: var(--color-text-subtle);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-shell .table th,
+.admin-shell .table td {
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12.5px;
+  padding: 11px 10px;
+}
+
+.admin-shell .pill,
+.admin-shell .badge {
+  border-radius: 999px;
+  font-size: 10.5px;
+}
+
+.admin-shell .modal {
+  border-radius: 22px;
+}
+
+.admin-sidebar__toggle {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  display: none;
+  height: 40px;
+  width: 40px;
+}
+
+/* --- Responsive --------------------------------------------------------- */
+
+@media (max-width: 1100px) {
+  .app-search {
+    width: 240px;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-frame {
+    gap: 14px;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 14px 14px 104px;
+  }
+
+  .app-top {
+    padding: 8px 8px 8px 12px;
+    top: 8px;
+  }
+
+  .app-top__brand svg {
+    height: 28px;
+    width: 28px;
+  }
+
+  .app-top__tools {
+    flex: 1 1 100%;
+  }
+
+  .app-search {
+    flex: 1 1 200px;
+    width: auto;
+  }
+
+  /* The rail becomes a floating dock, still one tap from anywhere. */
+  .app-rail {
+    align-items: center;
+    border-radius: 999px;
+    bottom: 14px;
+    flex-direction: row;
+    height: auto;
+    left: 50%;
+    max-width: calc(100vw - 20px);
+    overflow: auto hidden;
+    padding: 7px 10px;
+    position: fixed;
+    top: auto;
+    transform: translateX(-50%);
+    width: auto;
+    z-index: 70;
+  }
+
+  .app-rail__brand,
+  .app-rail__caption {
+    display: none;
+  }
+
+  .app-rail__nav {
+    flex-direction: row;
+    width: auto;
+  }
+
+  .app-rail__group {
+    display: contents;
+  }
+
+  .app-rail__link {
+    border-radius: 50%;
+    flex: 0 0 44px;
+    height: 44px;
+    justify-content: center;
+    padding: 0;
+    width: 44px;
+  }
+
+  .app-rail__label {
+    display: none;
+  }
+
+  .app-rail__link.is-active::after {
+    display: none;
+  }
+
+  .app-rail__foot {
+    border-left: 1px solid var(--lr-line);
+    border-top: 0;
+    flex-direction: row;
+    gap: 2px;
+    margin: 0 0 0 4px;
+    padding: 0 0 0 8px;
+    width: auto;
+  }
+
+  .app-rail__me {
+    padding: 0;
+  }
+
+  .app-rail__me:hover {
+    background: none;
+  }
+
+  .app-rail__who,
+  .app-rail__go {
+    display: none;
+  }
+
+  .app-shell .page-header h1 {
+    font-size: 22px;
+  }
+
+  .admin-shell {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 14px 14px 30px;
+  }
+
+  .admin-sidebar {
+    border-radius: 0 24px 24px 0;
+    height: 100vh;
+    height: 100dvh;
+    inset: 0 auto 0 0;
+    padding: 18px 14px;
+    position: fixed;
+    transform: translateX(-102%);
+    transition: transform 200ms ease;
+    width: var(--sidebar-width);
+    z-index: 90;
+  }
+
+  .admin-sidebar[data-open='true'] {
+    box-shadow: var(--shadow-lg);
+    transform: translateX(0);
+  }
+
+  .admin-sidebar__toggle {
+    display: inline-flex;
+  }
+
+  .admin-sidebar__backdrop {
+    background: var(--color-overlay);
+    border: 0;
+    display: block;
+    inset: 0;
+    position: fixed;
+    z-index: 85;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-top__tools {
+    flex-wrap: nowrap;
+  }
+
+  /* The category filter lives on the catalogue page and the account lives in
+     the dock, so the phone bar keeps only the mark, the section and search. */
+  .app-top__brand span,
+  .app-top__crumb,
+  .app-top__cluster .app-pop__wrap,
+  .app-top__rule,
+  .app-top__avatar,
+  .app-search__key {
+    display: none;
+  }
+
+  .app-search {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .app-top__cluster {
+    height: 40px;
+    padding: 0 2px;
+  }
+
+  .app-top .app-top__icon {
+    height: 36px;
+    width: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Nine destinations do not fit one thumb row on a phone: a 5-column grid
+     keeps every link reachable, with sign-out as the tenth cell. */
+  .app-frame {
+    padding-bottom: 128px;
+  }
+
+  .app-rail {
+    border-radius: 24px;
+    display: grid;
+    gap: 2px;
+    grid-template-columns: repeat(5, 44px);
+    justify-content: center;
+    overflow: visible;
+    padding: 8px;
+    width: auto;
+  }
+
+  .app-rail__nav,
+  .app-rail__group,
+  .app-rail__me,
+  .app-rail__actions,
+  .app-rail__foot {
+    display: contents;
+  }
+
+  .app-rail__avatar,
+  .app-rail .theme-toggle {
+    display: none;
+  }
+
+  .app-rail__link {
+    height: 44px;
+    justify-content: center;
+    padding: 0;
+    width: 44px;
+  }
+
+  .app-rail .icon-btn {
+    align-self: center;
+    justify-self: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell *,
+  .admin-shell * {
+    transition-duration: 0ms !important;
+  }
+}

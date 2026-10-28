@@ -1,0 +1,201 @@
+/* ---------------------------------------------------------------------------
+   Learnora design tokens.
+
+   One warm, paper-like palette for the whole product: an off-white canvas,
+   white cards with generous corners, black controls and a single sage accent.
+   Gold stays reserved for wallet balances, earnings and reward amounts.
+
+   Every colour comes from here, which is why light and dark mode only swap
+   token values and no component knows about the theme.
+   --------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Sora';
+  src: url('../assets/fonts/sora-variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light;
+
+  /* Brand palette */
+  --color-primary: #17171a;
+  --color-primary-hover: #2c2c29;
+  --color-primary-active: #000000;
+  --color-heading: #17171a;
+  --color-gold: #d4a72c;
+  --color-highlight: #e9f0e8;
+
+  /* Literal white, only for text/icons on a coloured surface. */
+  --color-white: #ffffff;
+  --color-on-primary: #fbfbf8;
+
+  /* Surfaces. `bg` is the page canvas, `surface` is a card, `surface-2` a recess. */
+  --color-bg: #e8e7e3;
+  --color-surface: #ffffff;
+  --color-surface-2: #f4f2ee;
+  --color-surface-3: #e9f0e8;
+  --color-overlay: rgba(23, 23, 20, 0.42);
+
+  /* Text */
+  --color-text: #17171a;
+  --color-text-muted: #6e6e68;
+  --color-text-subtle: #9b9b94;
+
+  /* Lines and rings */
+  --color-border: #e5e3dc;
+  --color-border-strong: #d4d1c8;
+
+  /* Derived, accessibility-checked variants */
+  --color-primary-soft: #eae9e4;
+  --color-primary-contrast: #17171a;
+  /* #D4A72C on white is only 2.2:1, so reward text uses a darker gold (4.9:1). */
+  --color-gold-text: #8a6d0b;
+  --color-gold-soft: #fbf4e0;
+  --color-danger: #b4433d;
+  --color-danger-soft: #fbeaea;
+  --color-danger-border: #e7b6b2;
+  --color-success: #415a48;
+  --color-success-soft: #e9f0e8;
+  --color-success-border: #c3d6c6;
+  --color-warning: #8a6d0b;
+  --color-warning-soft: #fbf4e0;
+  --color-warning-border: #e5d3a0;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Radius */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
+  --radius-pill: 999px;
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgba(23, 23, 20, 0.05);
+  --shadow-sm: 0 1px 2px rgba(23, 23, 20, 0.04), 0 18px 36px -30px rgba(23, 23, 20, 0.5);
+  --shadow-md: 0 8px 30px rgba(23, 23, 20, 0.1);
+  --shadow-lg: 0 24px 48px -28px rgba(23, 23, 20, 0.45);
+  --ring: 0 0 0 3px rgba(92, 123, 99, 0.28);
+
+  /* Typography */
+  --font-sans: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Layout */
+  --content-max: 1400px;
+  --nav-height: 64px;
+  --sidebar-width: 236px;
+
+  /* Motion */
+  --transition-fast: 120ms ease;
+  --transition: 180ms ease;
+
+  /* -------------------------------------------------------------------------
+     The `lr` namespace is the app UI system: the canvas, the floating rail,
+     the cards and every chip. It aliases the palette so components can be
+     written once and follow the theme.
+     ------------------------------------------------------------------------- */
+  --lr-canvas: var(--color-bg);
+  --lr-card: var(--color-surface);
+  --lr-card-2: var(--color-surface-2);
+  --lr-line: var(--color-border);
+
+  --lr-ink: var(--color-text);
+  --lr-ink-2: var(--color-text-muted);
+  --lr-ink-3: var(--color-text-subtle);
+
+  --lr-green: #5c7b63;
+  --lr-green-hover: #4d6a54;
+  --lr-green-soft: #e9f0e8;
+  --lr-green-text: #415a48;
+  --lr-green-ink: #f2f6f1;
+  --lr-gold: var(--color-gold);
+  --lr-gold-text: var(--color-gold-text);
+  --lr-peach: #f8e9dc;
+  --lr-red: var(--color-danger);
+  --lr-red-soft: var(--color-danger-soft);
+
+  --lr-invert: #17171a;
+  --lr-invert-ink: #fbfbf8;
+
+  --lr-shadow-card: var(--shadow-sm);
+  --lr-shadow-float: var(--shadow-lg);
+  --lr-radius: 22px;
+  --lr-gap: 16px;
+}
+
+/* ---------------------------------------------------------------------------
+   Dark theme. Only token values change - no component knows about the theme.
+   --------------------------------------------------------------------------- */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-primary: #f1f1ec;
+  --color-primary-hover: #ffffff;
+  --color-primary-active: #ffffff;
+  --color-heading: #f1f1ec;
+  --color-gold: #e0b53f;
+  --color-highlight: #232420;
+  --color-on-primary: #17181a;
+
+  --color-bg: #101110;
+  --color-surface: #1a1b19;
+  --color-surface-2: #232420;
+  --color-surface-3: #2a2c27;
+  --color-overlay: rgba(0, 0, 0, 0.6);
+
+  --color-text: #f1f1ec;
+  --color-text-muted: #a2a29a;
+  --color-text-subtle: #78786f;
+
+  --color-border: #2b2c28;
+  --color-border-strong: #3a3c36;
+
+  --color-primary-soft: #2b2c28;
+  --color-primary-contrast: #f1f1ec;
+  --color-gold-text: #e9c766;
+  --color-gold-soft: #2a2314;
+  --color-danger: #f0a19b;
+  --color-danger-soft: rgba(240, 161, 155, 0.14);
+  --color-danger-border: #6d2a28;
+  --color-success: #a8c9b0;
+  --color-success-soft: rgba(126, 173, 138, 0.16);
+  --color-success-border: #2f4a37;
+  --color-warning: #e9c766;
+  --color-warning-soft: #2a2314;
+  --color-warning-border: #5c4520;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5), 0 18px 36px -30px rgba(0, 0, 0, 0.9);
+  --shadow-md: 0 10px 28px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 24px 48px -28px rgba(0, 0, 0, 0.9);
+  --ring: 0 0 0 3px rgba(168, 201, 176, 0.32);
+
+  --lr-green: #4e6b56;
+  --lr-green-hover: #587760;
+  --lr-green-soft: rgba(126, 173, 138, 0.16);
+  --lr-green-text: #a8c9b0;
+  --lr-green-ink: #eef4ee;
+  --lr-peach: #2e2721;
+  --lr-invert: #f1f1ec;
+  --lr-invert-ink: #17181a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition: 0ms;
+  }
+}
