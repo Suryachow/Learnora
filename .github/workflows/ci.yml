@@ -87,8 +87,8 @@ jobs:
           context: ./backend
           push: true
           tags: |
-            suyatama/learnora-api:${{ github.sha }}
-            suyatama/learnora-api:latest
+            suytaama/learnora-api:${{ github.sha }}
+            suytaama/learnora-api:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Build and publish web image
@@ -99,8 +99,8 @@ jobs:
           build-args: |
             VITE_API_BASE_URL=/api/v1
           tags: |
-            suyatama/learnora-web:${{ github.sha }}
-            suyatama/learnora-web:latest
+            suytaama/learnora-web:${{ github.sha }}
+            suytaama/learnora-web:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -145,8 +145,8 @@ jobs:
           : "${DEPLOY_PATH:?DEPLOY_PATH is required}"
           cd "$DEPLOY_PATH"
           install -m 0644 /tmp/learnora-docker-compose.yml docker-compose.yml
-          export API_IMAGE="suyatama/learnora-api:${IMAGE_TAG}"
-          export WEB_IMAGE="suyatama/learnora-web:${IMAGE_TAG}"
+          export API_IMAGE="suytaama/learnora-api:${IMAGE_TAG}"
+          export WEB_IMAGE="suytaama/learnora-web:${IMAGE_TAG}"
           docker compose --env-file .env.docker pull api web
           docker compose --env-file .env.docker up -d --no-build api web
           docker image prune -f

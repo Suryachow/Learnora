@@ -43,7 +43,7 @@ docker compose --env-file .env.docker ps
 ## GitHub Actions secrets
 
 Create the Docker Hub repositories `learnora-api` and `learnora-web` under
-the `suyatama` account. Then create a GitHub **production environment** and add
+the `suytaama` account. Then create a GitHub **production environment** and add
 these secrets:
 
 | Secret | Value |
@@ -52,7 +52,7 @@ these secrets:
 | `DEPLOY_USER` | `ubuntu` |
 | `DEPLOY_SSH_KEY` | Contents of the EC2 private key |
 | `DEPLOY_PATH` | `/opt/learnora` |
-| `DOCKERHUB_USERNAME` | `suyatama` |
+| `DOCKERHUB_USERNAME` | `suytaama` |
 | `DOCKERHUB_TOKEN` | Docker Hub access token, not your password |
 
 Create the Docker Hub token at Docker Hub → Account Settings → Security →
