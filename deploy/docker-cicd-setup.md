@@ -4,7 +4,7 @@ The `main` branch workflow in `.github/workflows/ci.yml`:
 
 1. Runs backend tests and the frontend build.
 2. Builds the Docker images.
-3. Publishes immutable SHA-tagged images and `latest` tags to GitHub Container Registry.
+3. Publishes immutable SHA-tagged images and `latest` tags to Docker Hub.
 4. Deploys the SHA-tagged images to EC2 when the production deployment secrets exist.
 
 The deployment uses Amazon RDS or the existing database volume from the server's
@@ -42,7 +42,9 @@ docker compose --env-file .env.docker ps
 
 ## GitHub Actions secrets
 
-Create a GitHub **production environment** and add these secrets:
+Create the Docker Hub repositories `learnora-api` and `learnora-web` under
+the `suyatama` account. Then create a GitHub **production environment** and add
+these secrets:
 
 | Secret | Value |
 |---|---|
@@ -50,11 +52,13 @@ Create a GitHub **production environment** and add these secrets:
 | `DEPLOY_USER` | `ubuntu` |
 | `DEPLOY_SSH_KEY` | Contents of the EC2 private key |
 | `DEPLOY_PATH` | `/opt/learnora` |
+| `DOCKERHUB_USERNAME` | `suyatama` |
+| `DOCKERHUB_TOKEN` | Docker Hub access token, not your password |
 
-The workflow uses the built-in `GITHUB_TOKEN` to authenticate to GHCR. Make the
-two packages visible to the EC2 deployment, either by setting them to public or
-by authorizing the token used by the server. The workflow logs in to GHCR during
-each deployment and does not store a registry password in the repository.
+Create the Docker Hub token at Docker Hub → Account Settings → Security →
+Personal access tokens. Give it read/write permission, copy it once, and save it
+as `DOCKERHUB_TOKEN`. The workflow logs in to Docker Hub during each deployment
+and does not store the token in the repository.
 
 Add the EC2 user's public key to `~/.ssh/authorized_keys` before enabling the
 deployment job. Restrict the key to this repository's deployment purpose where
