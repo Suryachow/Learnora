@@ -132,6 +132,11 @@ The recommended AWS deployment is an Ubuntu EC2 instance running the API with
 systemd and serving the built React application through nginx. Use Amazon RDS
 for PostgreSQL rather than running the database on the EC2 instance.
 
+The complete, copy-paste deployment runbook is in
+[`deploy/aws-deployment-guide.md`](deploy/aws-deployment-guide.md). The active
+GitHub Actions workflow uses this native deployment path; Docker files in the
+repository are optional and are not used by CI/CD.
+
 On the EC2 instance, install the runtime prerequisites:
 
 ```bash
@@ -198,9 +203,11 @@ sudo tail -f /var/log/nginx/error.log
 
 ## 9. Optional Docker deployment
 
-The repository also includes a Docker Compose stack, but Docker is not required
-for the AWS deployment above. GitHub stores the source; Docker images must be
-rebuilt after each source update.
+The repository also includes a Docker Compose stack for local or future use,
+but Docker is not required for the AWS deployment above and is not used by the
+active GitHub Actions workflow. The Docker Hub instructions in
+[`deploy/docker-cicd-setup.md`](deploy/docker-cicd-setup.md) are optional and
+should not be configured for the current EC2 deployment.
 
 1. Clone the repository and enter the project:
 
